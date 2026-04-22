@@ -1,0 +1,13 @@
+name = "tvbox-sync-server"
+main = "src/worker.ts"
+compatibility_date = "2026-04-18"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tvbox-server"
+
+[env.production]
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "tvbox-server"
+database_id = "${PROD_D1_DATABASE_ID}"
