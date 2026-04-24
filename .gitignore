@@ -25,3 +25,4 @@ dist-ssr
 .dev.vars
 .wrangler
 .env
+.tvbox-sync-server.db
