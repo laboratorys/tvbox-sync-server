@@ -19,6 +19,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/utils/api";
 import {
+  Check,
   Copy,
   Link,
   Pencil,
@@ -33,9 +34,8 @@ import { computed, onMounted, ref, watch } from "vue";
 import { toast } from "vue-sonner";
 
 // --- 状态管理 ---
-// 恢复记忆：从 localStorage 读取，没有则默认为 "sub"
 const activeTab = ref(localStorage.getItem("config-active-tab") || "sub");
-
+const copiedStates = ref<Record<string, boolean>>({});
 // 监听变化并存入 localStorage
 watch(activeTab, (newVal) => {
   localStorage.setItem("config-active-tab", newVal);
@@ -52,6 +52,7 @@ const otpUri = ref("");
 // 临时状态
 const activeUser = ref<any>(null);
 const selectedSubIds = ref<number[]>([]);
+const currentSelectedUser = ref<any>(null);
 
 // 表单数据
 const subData = ref({ id: null as number | null, name: "", url: "", path: "" });
@@ -160,8 +161,18 @@ const openDialog = (type: "sub" | "user", item?: any) => {
 
 const openBindDialog = (user: any) => {
   dialogType.value = "bind";
+  currentSelectedUser.value = user;
   fetchUserBindings(user);
   isOpen.value = true;
+};
+
+const triggerCopy = async (id: string, text: string) => {
+  await navigator.clipboard.writeText(text);
+  copiedStates.value[id] = true;
+  toast.success("已复制到剪贴板");
+  setTimeout(() => {
+    delete copiedStates.value[id];
+  }, 2000);
 };
 
 const copyText = (user: any) => {
@@ -170,14 +181,31 @@ const copyText = (user: any) => {
     user.subscriptions?.length > 1
       ? "/api/sub"
       : `/api/sub/${user.subscriptions[0]?.path.replace(/^\//, "")}`;
-  const fullUrl = `${baseUrl}${path}?userKey=${user.user_key}`;
-  navigator.clipboard.writeText(fullUrl);
-  toast.success("已复制完整链接到剪贴板");
+  const fullUrl = `${baseUrl}${path}?key=${user.user_key}`;
+  triggerCopy(`user-${user.id}`, fullUrl);
 };
-
+const copySubText = (sub: any, user: any) => {
+  const baseUrl = window.location.origin;
+  const path = `/api/sub/${sub.path.replace(/^\//, "")}`;
+  const fullUrl = `${baseUrl}${path}?key=${user.user_key}`;
+  triggerCopy(`sub-${sub.id}-${user.id}`, fullUrl);
+};
 onMounted(async () => {
   await Promise.all([fetchSubList(), fetchUserList(), fetchOtp()]);
 });
+const tagColors = [
+  "bg-blue-100 text-blue-700",
+  "bg-emerald-100 text-emerald-700",
+  "bg-amber-100 text-amber-700",
+  "bg-rose-100 text-rose-700",
+  "bg-purple-100 text-purple-700",
+  "bg-cyan-100 text-cyan-700",
+];
+
+const getTagColor = (index: string | number) => {
+  index = Number(index);
+  return tagColors[index % tagColors.length];
+};
 </script>
 
 <template>
@@ -257,9 +285,12 @@ onMounted(async () => {
                     variant="ghost"
                     size="icon"
                     title="复制"
-                    @click="copyText(user)"
-                    ><Copy class="w-4 h-4"
-                  /></Button>
+                    @click="copyText(user)">
+                    <Check
+                      v-if="copiedStates[`user-${user.id}`]"
+                      class="w-4 h-4 text-green-500" />
+                    <Copy v-else class="w-4 h-4" />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -278,9 +309,10 @@ onMounted(async () => {
               </div>
               <div class="flex flex-wrap gap-2">
                 <span
-                  v-for="sub in user.subscriptions"
+                  v-for="(sub, index) in user.subscriptions"
                   :key="sub.id"
-                  class="text-xs px-2 py-1 bg-muted rounded-full text-muted-foreground"
+                  class="text-xs px-2 py-1 rounded-full font-medium"
+                  :class="getTagColor(index)"
                   >{{ sub.name }}</span
                 >
                 <span
@@ -326,18 +358,31 @@ onMounted(async () => {
 
         <div
           v-if="dialogType === 'bind'"
-          class="py-4 space-y-2 max-h-[300px] overflow-y-auto">
+          class="py-4 space-y-2 max-h-75 overflow-y-auto">
           <label
             v-for="sub in subscriptions"
             :key="sub.id"
-            class="flex items-center gap-3 p-3 border rounded hover:bg-muted cursor-pointer">
-            <input
-              type="checkbox"
-              :value="sub.id"
-              v-model="selectedSubIds"
-              class="w-4 h-4" />
-
-            <span>{{ sub.name }}</span>
+            class="flex items-center justify-between gap-3 p-3 border rounded hover:bg-muted cursor-pointer">
+            <div class="flex items-center gap-3">
+              <input
+                type="checkbox"
+                :value="sub.id"
+                v-model="selectedSubIds"
+                class="w-4 h-4" />
+              <span>{{ sub.name }}</span>
+            </div>
+            <Button
+              class="w-4 h-4"
+              v-if="selectedSubIds.includes(sub.id)"
+              variant="ghost"
+              size="icon"
+              title="复制"
+              @click="copySubText(sub, currentSelectedUser)"
+              ><Check
+                v-if="copiedStates[`sub-${sub.id}-${currentSelectedUser.id}`]"
+                class="w-4 h-4 text-green-500" />
+              <Copy v-else class="w-4 h-4"
+            /></Button>
           </label>
         </div>
 

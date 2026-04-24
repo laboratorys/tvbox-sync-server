@@ -2,6 +2,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { History, Search, Star } from "lucide-vue-next";
+import { computed } from "vue";
 
 const features = [
   {
@@ -20,6 +21,7 @@ const features = [
     icon: Search,
   },
 ];
+const versionInfo = computed(() => `Version: ${__VITE_WEBAPP_VERSION__}`);
 </script>
 
 <template>
@@ -42,7 +44,7 @@ const features = [
           <Badge
             variant="outline"
             class="rounded-full px-2 py-0.5 text-[10px] font-mono border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-zinc-500">
-            v0.1.0
+            {{ versionInfo }}
           </Badge>
         </div>
       </div>

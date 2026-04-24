@@ -67,6 +67,7 @@ const handleLogin = async () => {
     if (data.token) {
       auth.setToken(data.token);
       router.push("/config");
+      return;
     } else {
       throw new Error("Invalid server response");
     }
@@ -100,7 +101,7 @@ const handleLogin = async () => {
       </CardHeader>
 
       <CardContent>
-        <form @submit.prevent="handleLogin" class="space-y-4">
+        <form @submit.prevent="handleLogin()" class="space-y-4">
           <div
             v-if="errorMessage"
             class="text-sm text-red-500 font-medium bg-red-50 p-3 rounded-md">
@@ -153,7 +154,7 @@ const handleLogin = async () => {
                   id="otp"
                   v-model="form.otp"
                   :maxlength="6"
-                  @complete="handleLogin"
+                  :disabled="isLoading"
                   required>
                   <InputOTPGroup class="gap-2 justify-center w-full">
                     <InputOTPSlot
