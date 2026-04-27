@@ -1,10 +1,11 @@
+import dataRoute from "@/extra/douban-data";
+import imageRoute from "@/extra/douban-image";
 import { error, success } from "@/utils/response";
 import type { Context } from "hono";
 import { Hono, type MiddlewareHandler } from "hono";
 import { cors } from "hono/cors";
 import { verify as jwtVerify, sign } from "hono/jwt";
 import { generateSecret, generateURI, verify } from "otplib";
-
 type Bindings = {
   DB: D1Database;
   JWT_SECRET: string;
@@ -19,7 +20,6 @@ type Variables = {
 };
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
-
 const generateKey = () => {
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
   return Array.from(
@@ -75,7 +75,8 @@ const jwtAuth: MiddlewareHandler<{
 };
 
 app.use("/*", cors());
-
+app.route("/api/image-proxy", imageRoute);
+app.route("/api/data-proxy", dataRoute);
 const jwtSign = async (userName: string, secret: string) => {
   const payload = {
     sub: userName,
