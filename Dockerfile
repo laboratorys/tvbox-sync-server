@@ -10,7 +10,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
-RUN CI=true pnpm run build && pnpm prune --prod
+RUN pnpm run build
 
 FROM node:22-alpine AS runner
 
