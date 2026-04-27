@@ -10,3 +10,4 @@ database_name = "tvbox-server"
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "tvbox-server"
+database_id = "${D1_DATABASE_ID}"
