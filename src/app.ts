@@ -1,4 +1,5 @@
 import { error, success } from "@/utils/response";
+import type { Context } from "hono";
 import { Hono, type MiddlewareHandler } from "hono";
 import { cors } from "hono/cors";
 import { verify as jwtVerify, sign } from "hono/jwt";
@@ -287,7 +288,7 @@ app.post("/api/otp/generate", jwtAuth, async (c) => {
   return success(c, { secret: secret, uri: uri });
 });
 
-app.post("/api/history/sync", userKeyAuth, async (c) => {
+app.post("/api/tvbox/history", userKeyAuth, async (c) => {
   const data = await c.req.json();
   await c.env.DB.prepare(
     `
@@ -309,16 +310,27 @@ app.post("/api/history/sync", userKeyAuth, async (c) => {
   return success(c, true);
 });
 
-app.get("/api/history", userKeyAuth, async (c) => {
+app.get("/api/tvbox/history", userKeyAuth, async (c) => {
   const { results } = await c.env.DB.prepare(
-    "SELECT * FROM history WHERE user_key = ? ORDER BY createTime DESC",
+    `SELECT key, vodPic, vodName, vodFlag, vodRemarks, episodeUrl, 
+  revSort, revPlay, createTime, opening, ending, 
+  position, duration, speed, scale, cid FROM history WHERE user_key = ? ORDER BY createTime DESC`,
   )
     .bind(c.get("userKey"))
     .all();
-  return success(c, results);
+  const processedResults = results.map((row) => ({
+    ...row,
+    revSort: !!row.revSort,
+    revPlay: !!row.revPlay,
+  }));
+  return c.json(processedResults);
 });
 
-app.post("/api/keep/sync", userKeyAuth, async (c) => {
+app.delete("/api/tvbox/history", userKeyAuth, (c) =>
+  deleteResource(c, "history", "key", "key"),
+);
+
+app.post("/api/tvbox/keep", userKeyAuth, async (c) => {
   const { key, siteName, vodName, vodPic } = await c.req.json();
   await c.env.DB.prepare(
     "INSERT OR REPLACE INTO keep (user_key, key, siteName, vodName, vodPic) VALUES (?, ?, ?, ?, ?)",
@@ -328,34 +340,96 @@ app.post("/api/keep/sync", userKeyAuth, async (c) => {
   return success(c, true);
 });
 
-app.delete("/api/keep/:key", userKeyAuth, async (c) => {
-  await c.env.DB.prepare("DELETE FROM keep WHERE user_key = ? AND key = ?")
-    .bind(c.get("userKey"), c.req.param("key"))
-    .run();
-  return success(c, true);
-});
-
-app.post("/api/search/sync", userKeyAuth, async (c) => {
-  const { title } = await c.req.json();
-  await c.env.DB.prepare(
-    "INSERT OR REPLACE INTO search_history (user_key, title, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)",
+app.get("/api/tvbox/keep", userKeyAuth, async (c) => {
+  const { results } = await c.env.DB.prepare(
+    `SELECT key, siteName, vodName, vodPic, createTime, type, cid FROM keep WHERE user_key = ?`,
   )
-    .bind(c.get("userKey"), title)
-    .run();
+    .bind(c.get("userKey"))
+    .all();
+  return c.json(results);
+});
+
+app.delete("/api/tvbox/keep", userKeyAuth, (c) =>
+  deleteResource(c, "keep", "key", "key"),
+);
+
+app.post("/api/tvbox/keyword", userKeyAuth, async (c) => {
+  const { keyword } = await c.req.json();
+  const userKey = c.get("userKey");
+
+  if (!keyword || keyword.trim() === "") {
+    return c.json({ error: "Keyword cannot be empty" }, 400);
+  }
+
+  await c.env.DB.batch([
+    c.env.DB.prepare(
+      "DELETE FROM search_history WHERE user_key = ? AND title = ?",
+    ).bind(userKey, keyword),
+    c.env.DB.prepare(
+      "INSERT INTO search_history (user_key, title, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)",
+    ).bind(userKey, keyword),
+    c.env.DB.prepare(
+      `
+      DELETE FROM search_history 
+      WHERE user_key = ? 
+      AND rowid NOT IN (
+        SELECT rowid FROM search_history 
+        WHERE user_key = ? 
+        ORDER BY created_at DESC 
+        LIMIT 20
+      )
+    `,
+    ).bind(userKey, userKey),
+  ]);
+
   return success(c, true);
 });
 
-app.get("/api/search", userKeyAuth, async (c) => {
+app.get("/api/tvbox/keyword", userKeyAuth, async (c) => {
   const { results } = await c.env.DB.prepare(
     "SELECT title FROM search_history WHERE user_key = ? ORDER BY created_at DESC LIMIT 20",
   )
     .bind(c.get("userKey"))
     .all();
-  return success(c, results);
+  const keywords = results.map((row) => row.title);
+  return c.json(keywords);
 });
 
-app.get("/check", (c) => {
-  return c.json({ OK: true });
+app.delete("/api/tvbox/keyword", userKeyAuth, (c) =>
+  deleteResource(c, "search_history", "title", "keyword"),
+);
+
+const deleteResource = async (
+  c: Context<{ Bindings: Bindings; Variables: Variables }>,
+  tableName: "history" | "keep" | "search_history",
+  keyColumn = "key",
+  bodyKey = "key",
+) => {
+  let val;
+  try {
+    const body = await c.req.json();
+    val = body[bodyKey];
+  } catch (e) {}
+
+  const userKey = c.get("userKey");
+
+  if (val) {
+    await c.env.DB.prepare(
+      `DELETE FROM ${tableName} WHERE user_key = ? AND ${keyColumn} = ?`,
+    )
+      .bind(userKey, val)
+      .run();
+  } else {
+    await c.env.DB.prepare(`DELETE FROM ${tableName} WHERE user_key = ?`)
+      .bind(userKey)
+      .run();
+  }
+
+  return success(c, true);
+};
+
+app.get("/api/tvbox/check", (c) => {
+  return c.json({ OK: true, mode: "tvbox-sync-server" });
 });
 
 app.get("/api/sub/:path", userKeyAuth, async (c) => {

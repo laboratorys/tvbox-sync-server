@@ -38,6 +38,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+    if: github.repository == 'laboratorys/tvbox-sync-server'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v6

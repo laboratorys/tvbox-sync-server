@@ -7,7 +7,7 @@
 
 开源的 **TVBox 同步服务**，旨在解决多设备间影视观看记录、收藏夹及搜索历史无法同步的痛点。
 
-本项目需搭配 **影视（LAB 魔改版）** 使用。
+本项目需搭配 **[影视（LAB 魔改版）](https://github.com/laboratorys/TV-Release)** 使用。
 
 ---
 
@@ -55,6 +55,10 @@
    - 进入项目设置 -> **函数 (Functions)** -> **D1 数据库绑定**。
    - 点击 **添加**，变量名填 `DB`，数据库选择你已创建的 D1 数据库。
    - 保存并重新部署 (Deploy) 你的项目。
+6. **配置 GitHub Actions**
+   - `CLOUDFLARE_ACCOUNT_ID` CF_ACCOUNT_ID
+   - `CLOUDFLARE_API_TOKEN` API TOKEN
+   - `D1_DATABASE_ID` 绑定的数据库D1 ID
 
 ---
 

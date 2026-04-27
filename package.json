@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev:cf": "npx kill-port 3000 5173 && npx wrangler pages dev --port 3000 --proxy 5173 -- pnpm run web",
+    "dev:cf": "npx kill-port 3000 5173 && npx wrangler pages dev --port 3000 --ip 0.0.0.0 --proxy 5173 -- pnpm run web --host 0.0.0.0",
     "dev": "concurrently --raw \"npm run server\" \"wait-on tcp:3000 && pnpm run web\"",
     "server": "tsx watch src/node.ts",
     "web": "vite",
