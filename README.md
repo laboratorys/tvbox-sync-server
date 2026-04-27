@@ -39,7 +39,7 @@
 3. **配置构建设置 (Build Settings)**：
    - **构建命令 (Build command)**: `pnpm run build`
    - **构建输出目录 (Build output directory)**: `dist`
-   - (如果系统提示选择框架，可选择 "None" 或根据项目实际情况选择)。
+   - (如果系统提示选择框架，选择 "None")。
 
 4. **设置环境变量**：
    - 在项目设置页面中，找到 **设置 (Settings)** -> **环境变量 (Environment variables)**。

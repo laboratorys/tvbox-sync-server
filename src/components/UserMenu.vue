@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuthStore } from "@/stores/auth";
-import { Home, LogOut, Settings, User } from "lucide-vue-next";
+import { Home, LogIn, LogOut, Settings, User } from "lucide-vue-next";
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 
@@ -50,7 +49,8 @@ const mainMenu = computed(() => {
     type="button"
     class="relative h-9 w-9 rounded-full"
     @click="router.push('/login')">
-    <User else-if class="h-5 w-5" />
+     <LogIn class="h-5 w-5" />
+    
   </Button>
   <DropdownMenu v-else>
     <DropdownMenuTrigger as-child>
@@ -58,14 +58,7 @@ const mainMenu = computed(() => {
         variant="ghost"
         type="button"
         class="relative h-9 w-9 rounded-full">
-        <Avatar class="h-5 w-5">
-          <AvatarImage
-            src="https://github.com/evilrabbit.png"
-            alt="@evilrabbit" />
-          <AvatarFallback>{{
-            auth.user?.slice(0, 2).toUpperCase() || "CN"
-          }}</AvatarFallback>
-        </Avatar>
+       <User class="h-5 w-5" />
       </Button>
     </DropdownMenuTrigger>
 
