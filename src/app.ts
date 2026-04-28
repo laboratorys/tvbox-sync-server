@@ -38,7 +38,7 @@ const userKeyAuth: MiddlewareHandler<{
     return c.json({ success: false, error: "Unauthorized: Missing Key" }, 401);
   }
   const user = await c.env.DB.prepare(
-    "SELECT user_key FROM users WHERE user_key = ?",
+    "SELECT user_key FROM users WHERE status = 1AND user_key = ?",
   )
     .bind(key)
     .first<{ user_key: string }>();
@@ -269,6 +269,19 @@ app.delete("/api/users/:id", jwtAuth, async (c) => {
   return success(c, true);
 });
 
+app.post("/api/users/:id/toggle", jwtAuth, async (c) => {
+  const id = c.req.param("id");
+  const result = await c.env.DB.prepare(
+    "UPDATE users SET status = 1 - status WHERE id = ?",
+  )
+    .bind(id)
+    .run();
+  if (result.meta.changes === 0) {
+    return error(c, "User not found", 404);
+  }
+  return success(c, true);
+});
+
 app.get("/api/otp/secret", jwtAuth, (c) => {
   const uri = generateURI({
     issuer: "tvbox-sync-server",
@@ -278,7 +291,7 @@ app.get("/api/otp/secret", jwtAuth, (c) => {
   return success(c, { secret: c.env.OTP_SECRET, uri: uri });
 });
 
-// 2. 刷新/生成新的 Secret (如果你的需求是管理员可重置)
+// 2. 刷新/生成新的 Secret
 app.post("/api/otp/generate", jwtAuth, async (c) => {
   const secret = generateSecret(); // Base32-encoded secret
   const uri = generateURI({
@@ -429,16 +442,15 @@ const deleteResource = async (
   return success(c, true);
 };
 
-app.get("/api/tvbox/check", (c) => {
+app.get("/api/tvbox/check", userKeyAuth, (c) => {
+  const userKey = c.get("userKey");
+
   return c.json({ OK: true, mode: "tvbox-sync-server" });
 });
 
 app.get("/api/sub/:path", userKeyAuth, async (c) => {
   const path = "/" + c.req.param("path");
   const userKey = c.get("userKey");
-  console.log(
-    `User ${userKey} is trying to access subscription with path: ${path}`,
-  );
   const sub: any = await c.env.DB.prepare(
     `
     SELECT s.url FROM subscriptions s

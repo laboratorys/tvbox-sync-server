@@ -1,0 +1,2 @@
+-- Migration number: 0002 	 2026-04-28T03:03:10.795Z
+ALTER TABLE users ADD COLUMN status INTEGER DEFAULT 1;

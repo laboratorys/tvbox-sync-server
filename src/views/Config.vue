@@ -28,11 +28,13 @@ import {
   Globe,
   Link,
   Pencil,
+  Play,
   Plus,
   RefreshCw,
   Rss,
   Save,
   ShieldCheck,
+  Square,
   Trash2,
   Users,
 } from "lucide-vue-next";
@@ -232,6 +234,15 @@ const toggleSelection = (id: number, checked: boolean | "indeterminate") => {
     selectedSubIds.value = selectedSubIds.value.filter((subId) => subId !== id);
   }
 };
+const handleUserToggleStatus = async (user: any) => {
+  try {
+    await api.post(`/users/${user.id}/toggle`, {});
+    await fetchUserList();
+    toast.success("状态变更成功");
+  } catch (err) {
+    toast.error("状态变更失败");
+  }
+};
 </script>
 
 <template>
@@ -324,6 +335,23 @@ const toggleSelection = (id: number, checked: boolean | "indeterminate") => {
                   </p>
                 </div>
                 <div class="flex gap-1">
+                  <CustomTooltip side="bottom">
+                    <template #trigger>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        @click="handleUserToggleStatus(user)">
+                        <Square
+                          v-if="user.status == 1"
+                          class="w-4 h-4 text-red-500" />
+                        <Play v-else class="w-4 h-4 text-green-500" />
+                      </Button>
+                    </template>
+
+                    <template #content>
+                      <p>{{ user.status == 1 ? "停用" : "启用" }}</p>
+                    </template>
+                  </CustomTooltip>
                   <CustomTooltip side="bottom">
                     <template #trigger>
                       <Button
