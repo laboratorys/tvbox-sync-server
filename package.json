@@ -29,6 +29,7 @@
     "wrangler": "^4.83.0"
   },
   "dependencies": {
+    "@bprogress/vue": "^1.1.5",
     "@hono/node-server": "^1.19.14",
     "@vueuse/core": "^14.2.1",
     "bcryptjs": "^3.0.3",

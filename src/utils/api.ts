@@ -1,20 +1,22 @@
 import { useAuthStore } from "@/stores/auth";
 import type { ApiResponse } from "@/types";
+import { useProgress } from "@bprogress/vue";
 const API_BASE = "/api";
 async function request(endpoint: string, options: RequestInit = {}) {
   const auth = useAuthStore();
+  const { start, stop } = useProgress();
   const token = auth.token;
   const headers = {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
-
+  start();
   const response = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
     headers,
   });
-
+  stop();
   if (!response.ok) {
     const resp = (await response.json().catch(() => ({}))) as ApiResponse;
     if (!resp.success) {
