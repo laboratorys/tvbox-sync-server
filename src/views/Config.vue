@@ -236,10 +236,12 @@ const toggleSelection = (id: number, checked: boolean | "indeterminate") => {
 };
 const handleUserToggleStatus = async (user: any) => {
   try {
+    console.log(user.id);
     await api.post(`/users/${user.id}/toggle`, {});
     await fetchUserList();
     toast.success("状态变更成功");
   } catch (err) {
+    console.error(err);
     toast.error("状态变更失败");
   }
 };
