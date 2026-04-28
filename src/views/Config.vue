@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import CustomTooltip from "@/components/CustomTooltip.vue";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -271,19 +272,33 @@ const toggleSelection = (id: number, checked: boolean | "indeterminate") => {
                 <p class="text-xs text-muted-foreground">{{ item.url }}</p>
               </div>
               <div class="flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  @click="openDialog('sub', item)"
-                  ><Pencil class="w-4 h-4"
-                /></Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  class="text-destructive"
-                  @click="handleSubRemove(item.id)"
-                  ><Trash2 class="w-4 h-4"
-                /></Button>
+                <CustomTooltip side="bottom">
+                  <template #trigger>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      @click="openDialog('sub', item)"
+                      ><Pencil class="w-4 h-4"
+                    /></Button>
+                  </template>
+                  <template #content>
+                    <p>编辑</p>
+                  </template>
+                </CustomTooltip>
+                <CustomTooltip side="bottom">
+                  <template #trigger>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      class="text-destructive"
+                      @click="handleSubRemove(item.id)"
+                      ><Trash2 class="w-4 h-4"
+                    /></Button>
+                  </template>
+                  <template #content>
+                    <p>删除</p>
+                  </template>
+                </CustomTooltip>
               </div>
             </div>
           </div>
@@ -309,30 +324,51 @@ const toggleSelection = (id: number, checked: boolean | "indeterminate") => {
                   </p>
                 </div>
                 <div class="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    title="复制"
-                    @click="copyText(user)">
-                    <Check
-                      v-if="copiedStates[`user-${user.id}`]"
-                      class="w-4 h-4 text-green-500" />
-                    <Copy v-else class="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    title="绑定"
-                    @click="openBindDialog(user)"
-                    ><Link class="w-4 h-4"
-                  /></Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    class="text-destructive"
-                    @click="handleUserRemove(user.id)"
-                    ><Trash2 class="w-4 h-4"
-                  /></Button>
+                  <CustomTooltip side="bottom">
+                    <template #trigger>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        @click="copyText(user)">
+                        <Check
+                          v-if="copiedStates[`user-${user.id}`]"
+                          class="w-4 h-4 text-green-500" />
+                        <Copy v-else class="w-4 h-4" />
+                      </Button>
+                    </template>
+
+                    <template #content>
+                      <p>复制</p>
+                    </template>
+                  </CustomTooltip>
+                  <CustomTooltip side="bottom">
+                    <template #trigger>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        @click="openBindDialog(user)"
+                        ><Link class="w-4 h-4"
+                      /></Button>
+                    </template>
+                    <template #content>
+                      <p>绑定</p>
+                    </template>
+                  </CustomTooltip>
+                  <CustomTooltip side="bottom">
+                    <template #trigger>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        class="text-destructive"
+                        @click="handleUserRemove(user.id)"
+                        ><Trash2 class="w-4 h-4"
+                      /></Button>
+                    </template>
+
+                    <template #content>
+                      <p>删除</p>
+                    </template>
+                  </CustomTooltip>
                 </div>
               </div>
               <div class="flex flex-wrap gap-2">
@@ -362,15 +398,23 @@ const toggleSelection = (id: number, checked: boolean | "indeterminate") => {
               </div>
               <div class="flex gap-2">
                 <Input v-model="dataProxyUrl" readonly class="font-mono" />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  @click="copyProxyUrl(dataProxyUrl, 'data')">
-                  <Check
-                    v-if="copiedStates[`proxy-data`]"
-                    class="w-4 h-4 text-green-500" />
-                  <Copy v-else class="w-4 h-4" />
-                </Button>
+                <CustomTooltip side="bottom">
+                  <template #trigger>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      @click="copyProxyUrl(dataProxyUrl, 'data')">
+                      <Check
+                        v-if="copiedStates[`proxy-data`]"
+                        class="w-4 h-4 text-green-500" />
+                      <Copy v-else class="w-4 h-4" />
+                    </Button>
+                  </template>
+
+                  <template #content>
+                    <p>复制</p>
+                  </template>
+                </CustomTooltip>
               </div>
             </div>
 
@@ -383,15 +427,23 @@ const toggleSelection = (id: number, checked: boolean | "indeterminate") => {
               </div>
               <div class="flex gap-2">
                 <Input v-model="imageProxyUrl" readonly class="font-mono" />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  @click="copyProxyUrl(imageProxyUrl, 'image')">
-                  <Check
-                    v-if="copiedStates[`proxy-image`]"
-                    class="w-4 h-4 text-green-500" />
-                  <Copy v-else class="w-4 h-4" />
-                </Button>
+                <CustomTooltip side="bottom">
+                  <template #trigger>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      @click="copyProxyUrl(imageProxyUrl, 'image')">
+                      <Check
+                        v-if="copiedStates[`proxy-image`]"
+                        class="w-4 h-4 text-green-500" />
+                      <Copy v-else class="w-4 h-4" />
+                    </Button>
+                  </template>
+
+                  <template #content>
+                    <p>复制</p>
+                  </template>
+                </CustomTooltip>
               </div>
             </div>
           </div>
@@ -402,9 +454,17 @@ const toggleSelection = (id: number, checked: boolean | "indeterminate") => {
             <h2 class="text-xl font-bold">OTP 安全密钥</h2>
             <div class="flex gap-2">
               <Input readonly v-model="otpSecret" class="font-mono" />
-              <Button variant="outline" @click="refreshOtp"
-                ><RefreshCw class="w-4 h-4"
-              /></Button>
+              <CustomTooltip side="bottom">
+                <template #trigger>
+                  <Button variant="outline" @click="refreshOtp"
+                    ><RefreshCw class="w-4 h-4"
+                  /></Button>
+                </template>
+
+                <template #content>
+                  <p>重新生成，修改环境变量生效</p>
+                </template>
+              </CustomTooltip>
             </div>
             <div class="flex flex-col items-center border p-4 rounded-lg">
               <img :src="qrUrl" alt="QR Code" class="w-48 h-48 rounded-lg" />
@@ -446,18 +506,27 @@ const toggleSelection = (id: number, checked: boolean | "indeterminate") => {
                 class="w-4 h-4" />
               <span>{{ sub.name }}</span>
             </div>
-            <Button
-              class="w-4 h-4"
-              v-if="selectedSubIds.includes(sub.id)"
-              variant="ghost"
-              size="icon"
-              title="复制"
-              @click="copySubText(sub, currentSelectedUser)"
-              ><Check
-                v-if="copiedStates[`sub-${sub.id}-${currentSelectedUser.id}`]"
-                class="w-4 h-4 text-green-500" />
-              <Copy v-else class="w-4 h-4"
-            /></Button>
+            <CustomTooltip side="bottom">
+              <template #trigger>
+                <Button
+                  class="w-4 h-4"
+                  v-if="selectedSubIds.includes(sub.id)"
+                  variant="ghost"
+                  size="icon"
+                  @click="copySubText(sub, currentSelectedUser)"
+                  ><Check
+                    v-if="
+                      copiedStates[`sub-${sub.id}-${currentSelectedUser.id}`]
+                    "
+                    class="w-4 h-4 text-green-500" />
+                  <Copy v-else class="w-4 h-4"
+                /></Button>
+              </template>
+
+              <template #content>
+                <p>复制</p>
+              </template>
+            </CustomTooltip>
           </label>
         </div>
 
