@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -16,16 +18,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/utils/api";
 import {
   Check,
   Copy,
+  Globe,
   Link,
   Pencil,
   Plus,
   RefreshCw,
   Rss,
+  Save,
   ShieldCheck,
   Trash2,
   Users,
@@ -206,22 +211,45 @@ const getTagColor = (index: string | number) => {
   index = Number(index);
   return tagColors[index % tagColors.length];
 };
+const dataProxyUrl = computed(
+  () => `${window.location.origin}/api/data-proxy?url=`,
+);
+const imageProxyUrl = computed(
+  () => `${window.location.origin}/api/image-proxy?url=`,
+);
+
+const copyProxyUrl = (url: string, type: string) => {
+  navigator.clipboard.writeText(url);
+  triggerCopy(`proxy-${type}`, url);
+};
+const toggleSelection = (id: number, checked: boolean | "indeterminate") => {
+  if (checked) {
+    if (!selectedSubIds.value.includes(id)) {
+      selectedSubIds.value.push(id);
+    }
+  } else {
+    selectedSubIds.value = selectedSubIds.value.filter((subId) => subId !== id);
+  }
+};
 </script>
 
 <template>
-  <main class="min-h-screen pt-24 pb-20">
+  <main class="min-h-[calc(100vh-5rem)] pt-10 pb-20">
     <div class="max-w-2xl mx-auto px-6">
       <Tabs v-model="activeTab" class="w-full">
         <div class="flex justify-center w-full mb-10">
-          <TabsList class="grid w-full grid-cols-3 max-w-[400px]">
+          <TabsList class="grid w-full grid-cols-4 max-w-500">
             <TabsTrigger value="sub"
-              ><Rss class="mr-2 h-4 w-4" />订阅源</TabsTrigger
+              ><Rss class="mr-1 h-4 w-4" />订阅源</TabsTrigger
             >
             <TabsTrigger value="user"
-              ><Users class="mr-2 h-4 w-4" />用户</TabsTrigger
+              ><Users class="mr-1 h-4 w-4" />用户</TabsTrigger
+            >
+            <TabsTrigger value="proxy"
+              ><Globe class="mr-1 h-4 w-4" />豆瓣代理</TabsTrigger
             >
             <TabsTrigger value="otp"
-              ><ShieldCheck class="mr-2 h-4 w-4" />OTP</TabsTrigger
+              ><ShieldCheck class="mr-1 h-4 w-4" />OTP</TabsTrigger
             >
           </TabsList>
         </div>
@@ -325,6 +353,50 @@ const getTagColor = (index: string | number) => {
           </div>
         </TabsContent>
 
+        <TabsContent value="proxy" class="mt-2 space-y-4">
+          <div class="p-6 border rounded-xl bg-card space-y-6">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <Label>豆瓣数据代理</Label>
+                <Switch id="dataProxy" :modelValue="true" disabled />
+              </div>
+              <div class="flex gap-2">
+                <Input v-model="dataProxyUrl" readonly class="font-mono" />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  @click="copyProxyUrl(dataProxyUrl, 'data')">
+                  <Check
+                    v-if="copiedStates[`proxy-data`]"
+                    class="w-4 h-4 text-green-500" />
+                  <Copy v-else class="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div class="border-t border-dashed" />
+
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <Label>豆瓣图片代理</Label>
+                <Switch id="imageProxy" :modelValue="true" disabled />
+              </div>
+              <div class="flex gap-2">
+                <Input v-model="imageProxyUrl" readonly class="font-mono" />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  @click="copyProxyUrl(imageProxyUrl, 'image')">
+                  <Check
+                    v-if="copiedStates[`proxy-image`]"
+                    class="w-4 h-4 text-green-500" />
+                  <Copy v-else class="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
         <TabsContent value="otp" class="mt-2">
           <div class="p-6 border rounded-xl bg-card space-y-6">
             <h2 class="text-xl font-bold">OTP 安全密钥</h2>
@@ -345,13 +417,15 @@ const getTagColor = (index: string | number) => {
     <Dialog v-model:open="isOpen">
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{{
-            dialogType === "sub"
-              ? "订阅设置"
-              : dialogType === "user"
-                ? "新建用户"
-                : "绑定订阅源"
-          }}</DialogTitle>
+          <DialogTitle>
+            {{
+              dialogType === "sub"
+                ? "订阅设置"
+                : dialogType === "user"
+                  ? "新建用户"
+                  : "绑定订阅源"
+            }}</DialogTitle
+          >
 
           <DialogDescription class="hidden"> </DialogDescription>
         </DialogHeader>
@@ -364,10 +438,11 @@ const getTagColor = (index: string | number) => {
             :key="sub.id"
             class="flex items-center justify-between gap-3 p-3 border rounded hover:bg-muted cursor-pointer">
             <div class="flex items-center gap-3">
-              <input
-                type="checkbox"
-                :value="sub.id"
-                v-model="selectedSubIds"
+              <Checkbox
+                :model-value="selectedSubIds.includes(sub.id)"
+                @update:model-value="
+                  (checked) => toggleSelection(sub.id, checked)
+                "
                 class="w-4 h-4" />
               <span>{{ sub.name }}</span>
             </div>
@@ -424,7 +499,7 @@ const getTagColor = (index: string | number) => {
                   ? handleUserSave()
                   : handleBindSave()
             "
-            >保存</Button
+            ><Save class="mr-2 h-4 w-4" /> 保存</Button
           >
         </DialogFooter>
       </DialogContent>

@@ -82,7 +82,7 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-6 max-w-md mx-auto mt-20 px-4">
+  <div class="flex flex-col gap-6 max-w-md mx-auto px-4">
     <Card>
       <CardHeader>
         <CardTitle class="flex items-center gap-2">

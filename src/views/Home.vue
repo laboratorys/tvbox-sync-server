@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { History, Search, Star } from "lucide-vue-next";
-import { computed } from "vue";
+import { Globe, History, Search, Star } from "lucide-vue-next";
 
 const features = [
   {
@@ -20,35 +18,18 @@ const features = [
     desc: "记录搜索习惯，智能推荐感兴趣的内容。",
     icon: Search,
   },
+  {
+    title: "数据代理",
+    desc: "豆瓣API、图片代理加速服务。",
+    icon: Globe,
+  },
 ];
-const versionInfo = computed(() => `Version: ${__VITE_WEBAPP_VERSION__}`);
 </script>
 
 <template>
   <div
-    class="min-h-screen bg-slate-50 dark:bg-zinc-950 transition-colors duration-300 p-8 md:p-16">
+    class="min-h-[calc(100vh-5rem)] bg-slate-50 dark:bg-zinc-950 transition-colors duration-300 p-8 md:p-16">
     <main class="max-w-5xl mx-auto">
-      <div class="mb-12">
-        <div class="flex items-center gap-4 mb-3">
-          <div
-            class="p-2 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900">
-            <img
-              src="/favicon.svg"
-              alt="TVBox Logo"
-              class="h-6 w-6 object-contain block dark:invert" />
-          </div>
-          <h1
-            class="text-3xl font-bold tracking-tighter text-zinc-900 dark:text-zinc-50">
-            TVBox Sync Center
-          </h1>
-          <Badge
-            variant="outline"
-            class="rounded-full px-2 py-0.5 text-[10px] font-mono border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-zinc-500">
-            {{ versionInfo }}
-          </Badge>
-        </div>
-      </div>
-
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card
           v-for="item in features"
